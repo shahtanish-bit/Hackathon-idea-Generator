@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hackathon Idea Generator</title>
+  
+  <!-- Google Fonts: Space Grotesk (display) + JetBrains Mono (UI) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ============================================
+       CSS VARIABLES - Design System
+       ============================================ */
+    :root {
+      --bg-primary: #0a0e17;
+      --bg-secondary: #111827;
+      --bg-card: rgba(17, 24, 39, 0.7);
+      --fg-primary: #e2e8f0;
+      --fg-secondary: #94a3b8;
+      --fg-muted: #475569;
+      --accent-cyan: #22d3ee;
+      --accent-teal: #2dd4bf;
+      --accent-orange: #f97316;
+      --border-color: rgba(34, 211, 238, 0.15);
+      --border-glow: rgba(34, 211, 238, 0.4);
+      --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      --radius-sm: 8px;
+      --radius-md: 16px;
+      --radius-lg: 24px;
+      --font-display: 'Space Grotesk', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --transition-fast: 0.15s ease;
+      --transition-base: 0.3s ease;
+      --transition-slow: 0.5s ease;
+    }
+
+    /* ============================================
+       RESET & BASE STYLES
+       ============================================ */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-mono);
+      background-color: var(--bg-primary);
+      color: var(--fg-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Reduced motion preference */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* ============================================
+       BACKGROUND EFFECTS
+       ============================================ */
+    .bg-grid {
+      position: fixed;
+      inset: 0;
+      background-image: 
+        linear-gradient(rgba(34, 211, 238, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34, 211, 238, 0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .bg-gradient {
+      position: fixed;
+      inset: 0;
+      background: 
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(34, 211, 238, 0.15), transparent),
+        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(249, 115, 22, 0.1), transparent),
+        radial-gradient(ellipse 40% 30% at 10% 80%, rgba(45, 212, 191, 0.08), transparent);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Floating orbs */
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      z-index: 0;
+      animation: float 20s ease-in-out infinite;
+    }
+
+    .orb-1 {
+      width: 400px;
+      height: 400px;
+      background: rgba(34, 211, 238, 0.15);
+      top: -100px;
+      right: -100px;
+      animation-delay: 0s;
+    }
+
+    .orb-2 {
+      width: 300px;
+      height: 300px;
+      background: rgba(249, 115, 22, 0.1);
+      bottom: -50px;
+      left: -50px;
+      animation-delay: -7s;
+    }
+
+    .orb-3 {
+      width: 250px;
+      height: 250px;
+      background: rgba(45, 212, 191, 0.1);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation-delay: -14s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      25% { transform: translate(30px, -30px) scale(1.05); }
+      50% { transform: translate(-20px, 20px) scale(0.95); }
+      75% { transform: translate(20px, 10px) scale(1.02); }
+    }
+
+    /* ============================================
+       MAIN CONTAINER
+       ============================================ */
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      min-height: 100vh;
+    }
+
+    /* ============================================
+       HEADER
+       ============================================ */
+    .header {
+      text-align: center;
+      margin-bottom: 4rem;
+      opacity: 0;
+      animation: fadeInUp 0.8s ease forwards;
+    }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 50px;
+      font-size: 0.75rem;
+      color: var(--accent-cyan);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 1.5rem;
+    }
+
+    .header-badge::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background: var(--accent-cyan);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.2); }
+    }
+
+    .header h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 8vw, 4.5rem);
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, var(--fg-primary) 0%, var(--accent-cyan) 50%, var(--accent-teal) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header p {
+      font-size: 1.1rem;
+      color: var(--fg-secondary);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* ============================================
+       GENERATE ALL BUTTON
+       ============================================ */
+    .generate-all-wrapper {
+      text-align: center;
+      margin-bottom: 3rem;
+      opacity: 0;
+      animation: fadeInUp 0.8s ease 0.2s forwards;
+    }
+
+    .btn-generate-all {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1.25rem 2.5rem;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-teal));
+      border: none;
+      border-radius: var(--radius-md);
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--bg-primary);
+      cursor: pointer;
+      overflow: hidden;
+      transition: transform var(--transition-fast), box-shadow var(--transition-base);
+    }
+
+    .btn-generate-all::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transform: translateX(-100%);
+      transition: transform var(--transition-slow);
+    }
+
+    .btn-generate-all:hover::before {
+      transform: translateX(100%);
+    }
+
+    .btn-generate-all:hover {
+      transform: translateY(-2px);
+      box-shadow: 
+        0 10px 40px rgba(34, 211, 238, 0.3),
+        0 0 80px rgba(34, 211, 238, 0.2);
+    }
+
+    .btn-generate-all:active {
+      transform: translateY(0);
+    }
+
+    .btn-generate-all:focus-visible {
+      outline: 2px solid var(--accent-cyan);
+      outline-offset: 4px;
+    }
+
+    .btn-generate-all svg {
+      width: 20px;
+      height: 20px;
+      transition: transform var(--transition-base);
+    }
+
+    .btn-generate-all:hover svg {
+      transform: rotate(180deg);
+    }
+
+    /* ============================================
+       CARDS GRID
+       ============================================ */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+
+    /* ============================================
+       GENERATOR CARD
+       ============================================ */
+    .generator-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      backdrop-filter: blur(10px);
+      box-shadow: var(--card-shadow);
+      transition: border-color var(--transition-base), transform var(--transition-base);
+      opacity: 0;
+      animation: fadeInUp 0.8s ease forwards;
+    }
+
+    .generator-card:nth-child(1) { animation-delay: 0.3s; }
+    .generator-card:nth-child(2) { animation-delay: 0.4s; }
+    .generator-card:nth-child(3) { animation-delay: 0.5s; }
+
+    .generator-card:hover {
+      border-color: var(--border-glow);
+      transform: translateY(-4px);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .card-icon {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, rgba(34, 211, 238, 0.15), rgba(45, 212, 191, 0.1));
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      color: var(--accent-cyan);
+    }
+
+    .card-icon svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--fg-primary);
+    }
+
+    .card-subtitle {
+      font-size: 0.8rem;
+      color: var(--fg-muted);
+    }
+
+    /* Results area */
+    .results-area {
+      min-height: 200px;
+      margin-bottom: 1.5rem;
+    }
+
+    .result-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      padding: 0.75rem 1rem;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: var(--radius-sm);
+      margin-bottom: 0.75rem;
+      opacity: 0;
+      transform: translateX(-20px);
+      transition: opacity var(--transition-base), transform var(--transition-base);
+    }
+
+    .result-item.visible {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .result-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--fg-muted);
+    }
+
+    .result-value {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--accent-cyan);
+    }
+
+    /* Card specific colors */
+    .generator-card.game .result-value { color: var(--accent-cyan); }
+    .generator-card.tech .result-value { color: var(--accent-teal); }
+    .generator-card.challenge .result-value { color: var(--accent-orange); }
+
+    /* Generate button */
+    .btn-generate {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.875rem 1.5rem;
+      background: transparent;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--fg-secondary);
+      cursor: pointer;
+      transition: all var(--transition-base);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .generator-card.game .btn-generate:hover { 
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+      box-shadow: 0 0 20px rgba(34, 211, 238, 0.2);
+    }
+
+    .generator-card.tech .btn-generate:hover { 
+      border-color: var(--accent-teal);
+      color: var(--accent-teal);
+      box-shadow: 0 0 20px rgba(45, 212, 191, 0.2);
+    }
+
+    .generator-card.challenge .btn-generate:hover { 
+      border-color: var(--accent-orange);
+      color: var(--accent-orange);
+      box-shadow: 0 0 20px rgba(249, 115, 22, 0.2);
+    }
+
+    .btn-generate:focus-visible {
+      outline: 2px solid var(--accent-cyan);
+      outline-offset: 2px;
+    }
+
+    .btn-generate svg {
+      width: 16px;
+      height: 16px;
+      transition: transform var(--transition-base);
+    }
+
+    .btn-generate:hover svg {
+      transform: rotate(180deg);
+    }
+
+    .btn-generate.generating {
+      pointer-events: none;
+    }
+
+    .btn-generate.generating svg {
+      animation: spin 0.5s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Empty state */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 200px;
+      color: var(--fg-muted);
+      text-align: center;
+    }
+
+    .empty-state svg {
+      width: 40px;
+      height: 40px;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    .empty-state p {
+      font-size: 0.875rem;
+    }
+
+    /* ============================================
+       FOOTER
+       ============================================ */
+    .footer {
+      text-align: center;
+      padding: 3rem 0 2rem;
+      margin-top: 4rem;
+      border-top: 1px solid var(--border-color);
+      opacity: 0;
+      animation: fadeInUp 0.8s ease 0.6s forwards;
+    }
+
+    .footer p {
+      font-size: 0.8rem;
+      color: var(--fg-muted);
+    }
+
+    .footer a {
+      color: var(--accent-cyan);
+      text-decoration: none;
+      transition: color var(--transition-fast);
+    }
+
+    .footer a:hover {
+      color: var(--accent-teal);
+    }
+
+    /* ============================================
+       ANIMATIONS
+       ============================================ */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ============================================
+       RESPONSIVE DESIGN
+       ============================================ */
+    @media (max-width: 768px) {
+      .container {
+        padding: 1.5rem 1rem;
+      }
+
+      .header {
+        margin-bottom: 2.5rem;
+      }
+
+      .header h1 {
+        font-size: 2rem;
+      }
+
+      .header p {
+        font-size: 0.95rem;
+      }
+
+      .btn-generate-all {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .cards-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .generator-card {
+        padding: 1.5rem;
+      }
+
+      .orb {
+        display: none;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .header h1 {
+        font-size: 1.75rem;
+      }
+
+      .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Background Effects -->
+  <div class="bg-grid"></div>
+  <div class="bg-gradient"></div>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-badge">
+        <span>Ready to innovate</span>
+      </div>
+      <h1>Hackathon Idea Generator</h1>
+      <p>Stuck on what to build? Generate unique game concepts, tech stacks, and project challenges with a single click.</p>
+    </header>
+
+    <!-- Generate All Button -->
+    <div class="generate-all-wrapper">
+      <button class="btn-generate-all" id="generateAllBtn" aria-label="Generate all ideas at once">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+          <path d="M3 3v5h5"/>
+          <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+          <path d="M16 21h5v-5"/>
+        </svg>
+        Generate All Ideas
+      </button>
+    </div>
+
+    <!-- Cards Grid -->
+    <div class="cards-grid">
+      <!-- Game Idea Card -->
+      <article class="generator-card game" aria-labelledby="game-card-title">
+        <div class="card-header">
+          <div class="card-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="20" height="12" x="2" y="6" rx="2"/>
+              <circle cx="12" cy="12" r="2"/>
+              <path d="M6 12h.01"/>
+              <path d="M18 12h.01"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="card-title" id="game-card-title">Game Idea Generator</h2>
+            <p class="card-subtitle">Concepts for your next game jam</p>
+          </div>
+        </div>
+        <div class="results-area" id="gameResults">
+          <div class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+              <path d="M12 17h.01"/>
+            </svg>
+            <p>Click generate to get a random game idea</p>
+          </div>
+        </div>
+        <button class="btn-generate" data-generator="game" aria-label="Generate game idea">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+          </svg>
+          Generate Game Idea
+        </button>
+      </article>
+
+      <!-- Tech Stack Card -->
+      <article class="generator-card tech" aria-labelledby="tech-card-title">
+        <div class="card-header">
+          <div class="card-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m18 16 4-4-4-4"/>
+              <path d="m6 8-4 4 4 4"/>
+              <path d="m14.5 4-5 16"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="card-title" id="tech-card-title">Tech Stack Generator</h2>
+            <p class="card-subtitle">Random technology combinations</p>
+          </div>
+        </div>
+        <div class="results-area" id="techResults">
+          <div class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+              <path d="M12 17h.01"/>
+            </svg>
+            <p>Click generate to get a random tech stack</p>
+          </div>
+        </div>
+        <button class="btn-generate" data-generator="tech" aria-label="Generate tech stack">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+          </svg>
+          Generate Tech Stack
+        </button>
+      </article>
+
+      <!-- Project Challenge Card -->
+      <article class="generator-card challenge" aria-labelledby="challenge-card-title">
+        <div class="card-header">
+          <div class="card-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/>
+              <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
+              <path d="M4 22h16"/>
+              <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+              <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+              <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="card-title" id="challenge-card-title">Project Challenge</h2>
+            <p class="card-subtitle">Themes and constraints to push you</p>
+          </div>
+        </div>
+        <div class="results-area" id="challengeResults">
+          <div class="empty-state">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+              <path d="M12 17h.01"/>
+            </svg>
+            <p>Click generate to get a project challenge</p>
+          </div>
+        </div>
+        <button class="btn-generate" data-generator="challenge" aria-label="Generate project challenge">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+          </svg>
+          Generate Challenge
+        </button>
+      </article>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>Built for hackers, by hackers. Press buttons, get ideas, build amazing things.</p>
+    </footer>
+  </div>
+
+  <script>
+    // ============================================
+    // DATA SETS
+    // ============================================
+
+    // Game Idea Data
+    const gameData = {
+      genres: [
+        'Roguelike', 'Metroidvania', 'Tower Defense', 'Puzzle Platformer',
+        'Survival Horror', 'Rhythm Game', 'City Builder', 'Tactical RPG',
+        'Bullet Hell', 'Cozy Simulation', 'Asymmetric Multiplayer', 'Auto Battler',
+        'Physics-Based Puzzler', 'Card Battler', 'Stealth Action', 'Sandbox Adventure',
+        'Endless Runner', 'Turn-Based Strategy', 'Fighting Game', 'Visual Novel'
+      ],
+      twists: [
+        'Time moves only when you move',
+        'You play as the villain',
+        'The world is shrinking every minute',
+        'Your health is your only currency',
+        'Every enemy you kill becomes your ally',
+        'You have 60 seconds to complete each level',
+        'The controls change every 30 seconds',
+        'Light reveals hidden dimensions',
+        'You can only move by shooting',
+        'Death sends you to a parallel universe',
+        'Sound creates platforms',
+        'Your past selves are obstacles',
+        'Gravity flips based on your emotion',
+        'Typing words attacks enemies',
+        'You age with every action',
+        'The game plays itself when you stop',
+        'Drawing shapes casts spells',
+        'You must protect your enemy',
+        'Colors determine your abilities',
+        'Silence is deadly'
+      ],
+      platforms: [
+        'Web Browser', 'PC (Steam)', 'Mobile (iOS/Android)', 'VR Headset',
+        'Nintendo Switch', 'Console Cross-Platform', 'AR Mobile',
+        'Desktop + Mobile Sync', 'Smartwatch Companion', 'Multi-Device Ecosystem'
+      ]
+    };
+
+    // Tech Stack Data
+    const techData = {
+      frontend: [
+        'React', 'Vue.js', 'Svelte', 'Next.js', 'Nuxt.js', 'Angular',
+        'Solid.js', 'Qwik', 'Astro', 'Remix', 'Vanilla JS + WebGL',
+        'Three.js', 'Phaser.js', 'Canvas API', 'Preact', 'Alpine.js'
+      ],
+      backend: [
+        'Node.js + Express', 'Python + FastAPI', 'Go + Gin', 'Rust + Actix',
+        'Deno + Fresh', 'Bun + Hono', 'Ruby on Rails', 'Django',
+        'Phoenix (Elixir)', 'Spring Boot (Java)', 'NestJS', 'tRPC',
+        'Supabase Edge Functions', 'Cloudflare Workers', 'AWS Lambda'
+      ],
+      database: [
+        'PostgreSQL', 'MongoDB', 'SQLite', 'Redis', 'Supabase',
+        'PlanetScale (MySQL)', 'Turso', 'Neon', 'CockroachDB',
+        'Firestore', 'DynamoDB', 'Cassandra', 'InfluxDB', 'GraphDB'
+      ],
+      aiApi: [
+        'OpenAI GPT-4 API', 'Anthropic Claude', 'Google Gemini', 'Replicate',
+        'Hugging Face', 'Stability AI', 'ElevenLabs (Voice)', 'Whisper (Speech-to-Text)',
+        'LangChain', 'Llama 2 (Local)', 'Custom TensorFlow Model',
+        'ONNX Runtime', 'none (traditional logic)'
+      ]
+    };
+
+    // Project Challenge Data
+    const challengeData = {
+      themes: [
+        'Climate Action Dashboard', 'Mental Health Companion', 'Smart City Solutions',
+        'Educational Gaming Platform', 'Accessibility Tools', 'Community Building App',
+        'Financial Literacy Game', 'Healthcare Patient Portal', 'Sustainable Shopping',
+        'Remote Work Collaboration', 'Food Waste Tracker', 'Local Business Finder',
+        'Emergency Response System', 'Pet Care Ecosystem', 'Senior Tech Support',
+        'Language Learning Adventure', 'Fitness Social Network', 'Event Discovery Platform',
+        'Volunteer Matching Service', 'Creative Portfolio Builder'
+      ],
+      difficulties: ['Easy', 'Medium', 'Hard'],
+      constraints: [
+        'Must work completely offline',
+        'No external APIs allowed',
+        'Must use only vanilla JS',
+        'Max 24 hours of development time',
+        'Team of 2 only',
+        'Must be accessible (WCAG 2.1 AA)',
+        'Only 3 colors in the design',
+        'Must include voice commands',
+        'Real-time collaboration required',
+        'Single HTML file deployment',
+        'Must have dark mode by default',
+        'Mobile-first design only',
+        'Must include internationalization',
+        'PWA with push notifications',
+        'Keyboard-only navigation',
+        'Data visualization required',
+        'Gamification elements mandatory',
+        'Must use WebSockets',
+        'Authentication in under 100 lines',
+        'Zero JavaScript framework'
+      ]
+    };
+
+    // ============================================
+    // UTILITY FUNCTIONS
+    // ============================================
+
+    /**
+     * Get a random item from an array
+     * @param {Array} arr - Array to pick from
+     * @returns {*} Random item
+     */
+    function getRandomItem(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    /**
+     * Get difficulty badge color
+     * @param {string} difficulty - Difficulty level
+     * @returns {string} CSS color variable
+     */
+    function getDifficultyColor(difficulty) {
+      const colors = {
+        'Easy': 'var(--accent-teal)',
+        'Medium': 'var(--accent-cyan)',
+        'Hard': 'var(--accent-orange)'
+      };
+      return colors[difficulty] || 'var(--fg-primary)';
+    }
+
+    /**
+     * Create result item HTML
+     * @param {string} label - Label text
+     * @param {string} value - Value text
+     * @param {string} colorClass - Color class for the card
+     * @returns {string} HTML string
+     */
+    function createResultHTML(label, value, colorClass) {
+      return `
+        <div class="result-item">
+          <span class="result-label">${label}</span>
+          <span class="result-value" style="color: ${colorClass}">${value}</span>
+        </div>
+      `;
+    }
+
+    // ============================================
+    // GENERATOR FUNCTIONS
+    // ============================================
+
+    /**
+     * Generate a random game idea
+     * @returns {Object} Game idea object
+     */
+    function generateGameIdea() {
+      return {
+        genre: getRandomItem(gameData.genres),
+        twist: getRandomItem(gameData.twists),
+        platform: getRandomItem(gameData.platforms)
+      };
+    }
+
+    /**
+     * Generate a random tech stack
+     * @returns {Object} Tech stack object
+     */
+    function generateTechStack() {
+      return {
+        frontend: getRandomItem(techData.frontend),
+        backend: getRandomItem(techData.backend),
+        database: getRandomItem(techData.database),
+        aiApi: getRandomItem(techData.aiApi)
+      };
+    }
+
+    /**
+     * Generate a random project challenge
+     * @returns {Object} Challenge object
+     */
+    function generateChallenge() {
+      return {
+        theme: getRandomItem(challengeData.themes),
+        difficulty: getRandomItem(challengeData.difficulties),
+        constraint: getRandomItem(challengeData.constraints)
+      };
+    }
+
+    // ============================================
+    // UI UPDATE FUNCTIONS
+    // ============================================
+
+    /**
+     * Update the results area with animation
+     * @param {string} containerId - ID of the results container
+     * @param {string} html - HTML content to display
+     */
+    function updateResults(containerId, html) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      container.innerHTML = html;
+      
+      // Animate items in
+      const items = container.querySelectorAll('.result-item');
+      items.forEach((item, index) => {
+        setTimeout(() => {
+          item.classList.add('visible');
+        }, index * 100);
+      });
+    }
+
+    /**
+     * Display game idea results
+     * @param {Object} idea - Game idea object
+     */
+    function displayGameIdea(idea) {
+      const html = `
+        ${createResultHTML('Genre', idea.genre, 'var(--accent-cyan)')}
+        ${createResultHTML('Unique Twist', idea.twist, 'var(--accent-cyan)')}
+        ${createResultHTML('Target Platform', idea.platform, 'var(--accent-cyan)')}
+      `;
+      updateResults('gameResults', html);
+    }
+
+    /**
+     * Display tech stack results
+     * @param {Object} stack - Tech stack object
+     */
+    function displayTechStack(stack) {
+      const html = `
+        ${createResultHTML('Frontend', stack.frontend, 'var(--accent-teal)')}
+        ${createResultHTML('Backend', stack.backend, 'var(--accent-teal)')}
+        ${createResultHTML('Database', stack.database, 'var(--accent-teal)')}
+        ${createResultHTML('AI/API', stack.aiApi, 'var(--accent-teal)')}
+      `;
+      updateResults('techResults', html);
+    }
+
+    /**
+     * Display challenge results
+     * @param {Object} challenge - Challenge object
+     */
+    function displayChallenge(challenge) {
+      const html = `
+        ${createResultHTML('Theme', challenge.theme, 'var(--accent-orange)')}
+        ${createResultHTML('Difficulty', challenge.difficulty, getDifficultyColor(challenge.difficulty))}
+        ${createResultHTML('Constraint', challenge.constraint, 'var(--accent-orange)')}
+      `;
+      updateResults('challengeResults', html);
+    }
+
+    /**
+     * Set button loading state
+     * @param {HTMLElement} button - Button element
+     * @param {boolean} isLoading - Loading state
+     */
+    function setButtonLoading(button, isLoading) {
+      if (isLoading) {
+        button.classList.add('generating');
+        button.disabled = true;
+      } else {
+        button.classList.remove('generating');
+        button.disabled = false;
+      }
+    }
+
+    // ============================================
+    // AUDIO (Optional - Simple beep)
+    // ============================================
+
+    /**
+     * Play a simple beep sound
+     * Uses Web Audio API - no external files needed
+     */
+    function playBeep() {
+      // Check for reduced motion preference
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        return;
+      }
+
+      try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        oscillator.frequency.value = 800;
+        oscillator.type = 'sine';
+
+        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.1);
+      } catch (e) {
+        // Audio not supported or blocked, fail silently
+      }
+    }
+
+    // ============================================
+    // EVENT HANDLERS
+    // ============================================
+
+    /**
+     * Handle generate button click
+     * @param {string} type - Generator type
+     * @param {HTMLElement} button - Button element
+     */
+    function handleGenerate(type, button) {
+      setButtonLoading(button, true);
+      playBeep();
+
+      // Small delay for animation effect
+      setTimeout(() => {
+        switch (type) {
+          case 'game':
+            displayGameIdea(generateGameIdea());
+            break;
+          case 'tech':
+            displayTechStack(generateTechStack());
+            break;
+          case 'challenge':
+            displayChallenge(generateChallenge());
+            break;
+        }
+        setButtonLoading(button, false);
+      }, 300);
+    }
+
+    /**
+     * Handle generate all button click
+     */
+    function handleGenerateAll() {
+      const button = document.getElementById('generateAllBtn');
+      setButtonLoading(button, true);
+      playBeep();
+
+      setTimeout(() => {
+        displayGameIdea(generateGameIdea());
+        
+        setTimeout(() => {
+          displayTechStack(generateTechStack());
+          
+          setTimeout(() => {
+            displayChallenge(generateChallenge());
+            setButtonLoading(button, false);
+          }, 150);
+        }, 150);
+      }, 300);
+    }
+
+    // ============================================
+    // INITIALIZATION
+    // ============================================
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Attach event listeners to individual generator buttons
+      const generateButtons = document.querySelectorAll('.btn-generate');
+      generateButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          const type = button.dataset.generator;
+          handleGenerate(type, button);
+        });
+      });
+
+      // Attach event listener to generate all button
+      const generateAllBtn = document.getElementById('generateAllBtn');
+      if (generateAllBtn) {
+        generateAllBtn.addEventListener('click', handleGenerateAll);
+      }
+
+      // Keyboard accessibility - Enter/Space triggers click
+      document.querySelectorAll('button').forEach(button => {
+        button.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            button.click();
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
